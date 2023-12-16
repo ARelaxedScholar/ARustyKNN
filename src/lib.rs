@@ -103,6 +103,74 @@ mod vector {
             Vector::new(sum)
         }
     }
+
+    mod<const SIZE: usize> knn {
+        struct KnnData{
+            label:String,
+            data:Vector<SIZE>
+        }
+        impl KnnData{
+            pub fn default(){
+                let origin:[f64;SIZE] = [0.0;SIZE];
+                KnnData{
+                    label: String::from("a label"),
+                    data: Vector::new(origin); 
+                }
+                
+
+            }
+            pub fn new(label:String, data:Vector<SIZE>){
+                KnnData{
+                    label,
+                    data
+                }
+
+            }
+            pub fn find_knn(k:usize, labelled_data:Vec<KnnData>, target:Vector<SIZE>) -> Option<String>{
+                let mut k_nearest_neighbors = BinaryHeap<(f64, KnnData)>::with_capacity(k);
+                //First find KNN
+                labelled_data.
+                iter().
+                for_each(|current_element| {
+                    let distance = Vector::compute_distance(current_element.data, target);
+                    //If the heap is not filled to capacity
+                    if (k_nearest_neighbors.len() < k){
+                        k_nearest_neighbors.push((distance, current_element));
+                    }
+                    //If I find something closer than max (I remove the max)
+                    else if let Some(&(max_distance, _)) = k_nearest_neighbors.peek(){
+                        if (distance < max_distance){
+                            k_nearest_neighbors.pop();
+                            k_nearest_neighbors.push((distance, &current_element))
+                        }   
+                    }
+                });
+                //Then compute the mode for KNN O(k)
+                let mut k_nearest_number_mode = HashMap<String, f64>::with_capacity(k);
+                k_nearest_neighbors.iter().
+                for_each(|nth_nearest_neighbor| {
+                    let mode = k_nearest_number_mode.entry(nth_nearest_neighbor.1.label).or_insert(0);
+                    let distance = if (nth_nearest_neighbor.0 != 1){
+                        nth_nearest_neighbor.0
+                    } else {
+                        1
+                    }
+                    *mode += 1/distance;
+                });
+
+                //Finally return the label with the biggest 
+                //(if multiple label have the same mode (unlikely)) we just return the first
+                k_nearest_number_mode.iter().
+                max_by(|key1, key2| match key1.1.partial_cmp(key2.1){
+                    Some(order) => order,
+                    None => std::cmp::Ordering::Equal 
+                })
+                .map(|(label, _)| label);
+            }
+
+        }
+        
+    }
 }
 // mod matrix {
 //     struct Matrix{
