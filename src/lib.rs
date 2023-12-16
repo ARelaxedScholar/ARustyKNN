@@ -1,6 +1,6 @@
 mod vector {
-
-    struct Vector<const SIZE: usize> {
+    #[derive(Clone, Debug)]
+    pub struct Vector<const SIZE: usize> {
         coordinates: [f64; SIZE],
         norm: f64,
     }
@@ -104,72 +104,105 @@ mod vector {
         }
     }
 
-    mod<const SIZE: usize> knn {
-        struct KnnData{
-            label:String,
-            data:Vector<SIZE>
+    mod knn {
+        use crate::vector::Vector;
+        #[derive(Clone, Debug)]
+        struct KnnData<const SIZE: usize>
+        {
+            label: String,
+            data: Vector<SIZE>,
+            distance_from_target: f64,
         }
-        impl KnnData{
-            pub fn default(){
-                let origin:[f64;SIZE] = [0.0;SIZE];
-                KnnData{
-                    label: String::from("a label"),
-                    data: Vector::new(origin); 
-                }
-                
 
+        impl<const SIZE: usize> PartialEq for KnnData<SIZE> {
+            fn eq(&self, other: &Self) -> bool {
+                self.distance_from_target == other.distance_from_target
             }
-            pub fn new(label:String, data:Vector<SIZE>){
-                KnnData{
+        }
+
+        impl<const SIZE: usize> Eq for KnnData<SIZE> {}
+
+        impl<const SIZE: usize> PartialOrd for KnnData<SIZE> {
+            fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+                other
+                    .distance_from_target
+                    .partial_cmp(&self.distance_from_target)
+            }
+        }
+
+        impl<const SIZE: usize> Ord for KnnData<SIZE> {
+            fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+                self.partial_cmp(other).unwrap_or(std::cmp::Ordering::Equal)
+            }
+        }
+        impl<const SIZE: usize> KnnData<SIZE> {
+            pub fn default() -> Self {
+                let origin: [f64; SIZE] = [0.0; SIZE];
+                KnnData {
+                    label: String::from("Unitialized"),
+                    data: Vector::new(origin),
+                    distance_from_target: 0.0,
+                }
+            }
+            pub fn new(label: String, data: Vector<SIZE>, distance_from_target: f64) -> Self {
+                KnnData {
                     label,
-                    data
+                    data,
+                    distance_from_target,
                 }
-
             }
-            pub fn find_knn(k:usize, labelled_data:Vec<KnnData>, target:Vector<SIZE>) -> Option<String>{
-                let mut k_nearest_neighbors = BinaryHeap<(f64, KnnData)>::with_capacity(k);
+            pub fn find_knn(
+                k: usize,
+                mut labelled_data: Vec<KnnData<SIZE>>,
+                target: Vector<SIZE>,
+            ) -> Option<String> {
+                let mut k_nearest_neighbors =
+                    std::collections::BinaryHeap::<KnnData<SIZE>>::with_capacity(k);
                 //First find KNN
-                labelled_data.
-                iter().
-                for_each(|current_element| {
-                    let distance = Vector::compute_distance(current_element.data, target);
+                labelled_data.iter_mut().for_each(|current_element| {
+                    let distance =
+                        crate::vector::Vector::compute_distance(&current_element.data, &target);
+                    current_element.distance_from_target = distance;
                     //If the heap is not filled to capacity
-                    if (k_nearest_neighbors.len() < k){
-                        k_nearest_neighbors.push((distance, current_element));
+                    if k_nearest_neighbors.len() < k {
+                        k_nearest_neighbors.push(current_element.clone());
                     }
                     //If I find something closer than max (I remove the max)
-                    else if let Some(&(max_distance, _)) = k_nearest_neighbors.peek(){
-                        if (distance < max_distance){
+                    else if let Some(farthest_nearest_neighbor) =
+                        k_nearest_neighbors.peek().clone()
+                    {
+                        if distance < farthest_nearest_neighbor.distance_from_target {
                             k_nearest_neighbors.pop();
-                            k_nearest_neighbors.push((distance, &current_element))
-                        }   
+                            k_nearest_neighbors.push(current_element.clone())
+                        }
                     }
                 });
                 //Then compute the mode for KNN O(k)
-                let mut k_nearest_number_mode = HashMap<String, f64>::with_capacity(k);
-                k_nearest_neighbors.iter().
-                for_each(|nth_nearest_neighbor| {
-                    let mode = k_nearest_number_mode.entry(nth_nearest_neighbor.1.label).or_insert(0);
-                    let distance = if (nth_nearest_neighbor.0 != 1){
-                        nth_nearest_neighbor.0
+                let mut k_nearest_number_mode =
+                    std::collections::HashMap::<String, f64>::with_capacity(k);
+                k_nearest_neighbors.iter().for_each(|nth_nearest_neighbor| {
+                    let mode = k_nearest_number_mode
+                        .entry(nth_nearest_neighbor.clone().label)
+                        .or_insert(0.0);
+                    let distance = if nth_nearest_neighbor.distance_from_target != 0.0 {
+                        nth_nearest_neighbor.distance_from_target
                     } else {
-                        1
-                    }
-                    *mode += 1/distance;
+                        1.0
+                    };
+                    *mode += 1.0 / distance;
                 });
 
-                //Finally return the label with the biggest 
+                //Finally return the label with the biggest
                 //(if multiple label have the same mode (unlikely)) we just return the first
-                k_nearest_number_mode.iter().
-                max_by(|key1, key2| match key1.1.partial_cmp(key2.1){
-                    Some(order) => order,
-                    None => std::cmp::Ordering::Equal 
-                })
-                .map(|(label, _)| label);
+                k_nearest_number_mode
+                    .iter()
+                    .max_by(|key1, key2| match key1.1.partial_cmp(key2.1) {
+                        Some(order) => order,
+                        None => std::cmp::Ordering::Equal,
+                    })
+                    .map(|(label, _)| label.clone())
             }
-
         }
-        
     }
 }
 // mod matrix {
