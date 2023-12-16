@@ -1,4 +1,4 @@
-mod vector {
+pub mod vector {
     #[derive(Clone, Debug)]
     pub struct Vector<const SIZE: usize> {
         coordinates: [f64; SIZE],
@@ -104,10 +104,10 @@ mod vector {
         }
     }
 
-    mod knn {
+    pub mod knn {
         use crate::vector::Vector;
         #[derive(Clone, Debug)]
-        struct KnnData<const SIZE: usize>
+        pub struct KnnData<const SIZE: usize>
         {
             label: String,
             data: Vector<SIZE>,
@@ -144,11 +144,11 @@ mod vector {
                     distance_from_target: 0.0,
                 }
             }
-            pub fn new(label: String, data: Vector<SIZE>, distance_from_target: f64) -> Self {
+            pub fn new(label: String, data: Vector<SIZE>) -> Self {
                 KnnData {
                     label,
                     data,
-                    distance_from_target,
+                    distance_from_target:-1.0,
                 }
             }
             pub fn find_knn(
