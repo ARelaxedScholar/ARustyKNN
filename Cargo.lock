@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "knn_two"
+name = "knn_test_binary"
 version = "0.1.0"
 dependencies = [
  "linear_algebra",
