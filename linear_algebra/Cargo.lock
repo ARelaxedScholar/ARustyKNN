@@ -3,12 +3,5 @@
 version = 3
 
 [[package]]
-name = "knn_two"
-version = "0.1.0"
-dependencies = [
- "linear_algebra",
-]
-
-[[package]]
 name = "linear_algebra"
 version = "0.1.0"
