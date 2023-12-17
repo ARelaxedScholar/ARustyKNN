@@ -15,11 +15,11 @@ As part of my learning process, I've decided to start with K-Nearest Neighbors (
 ## KNN project (complete) Step 1/X Complete!
 - KNN itself is done, the current implementation works and I will work on it on a need to basis.
 I didn't watch the code implementation since I already had an idea how it would make sense to implement it,
-but this channel is amazing and much too small. Give it a link. The idea to code KNN comes from there >> https://www.youtube.com/watch?v=258u1CVlYvs
+but this channel is amazing and much too small. Give it a look. The idea to code KNN comes from there >> https://www.youtube.com/watch?v=258u1CVlYvs
 
 
 ## Stuff to add
-- Proper document and doctests for the linear algebra methods
+- Proper documentation and doctests for the linear algebra methods
 - Implementation of matrices
 - Implementation of generics for the vector (currently only accepts floats)
 
