@@ -11,3 +11,15 @@ I'm a newcomer to Rust, and I'm excited to document my progress as I work throug
 
 ## Coding K-Nearest Neighbors (KNN)
 As part of my learning process, I've decided to start with K-Nearest Neighbors (KNN), a fundamental machine learning algorithm. Implementing KNN in Rust will not only help me understand the language but also reinforce my understanding of machine learning concepts. Stay tuned for updates on my KNN journey within this larger project. Join me on this exciting adventure!
+
+## KNN project (complete) Step 1/X Complete!
+- KNN itself is done, the current implementation works and I will work on it on a need to basis.
+I didn't watch the code implementation since I already had an idea how it would make sense to implement it,
+but this channel is amazing and much too small. Give it a link. The idea to code KNN comes from there >> https://www.youtube.com/watch?v=258u1CVlYvs
+
+
+## Stuff to add
+- Proper document and doctests for the linear algebra methods
+- Implementation of matrices
+- Implementation of generics for the vector (currently only accepts floats)
+
