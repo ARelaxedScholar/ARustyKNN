@@ -1,8 +1,12 @@
 pub mod vector {
+    use std::ops::{Add, Sub, Mul, Div};
     #[derive(Clone, Debug)]
-    pub struct Vector<const SIZE: usize> {
-        coordinates: [f64; SIZE],
-        norm: f64,
+    pub struct Vector<T, const SIZE: usize> where
+    //I want all the number stuff, plus ability to compare.
+    T: Add + Sub + Mul + Div + PartialEq + PartialOrd
+    {
+        coordinates: [T; SIZE],
+        norm: T,
     }
 
     impl<const SIZE: usize> Vector<SIZE> {
@@ -12,9 +16,9 @@ pub mod vector {
         ///
         /// # Arguments
         ///
-        /// * `other`` -  A reference of another vector of same SIZE
+        /// * `other` -  A reference of another vector of same SIZE
         ///
-        /// # Returns nothing, simply modifies the vector in place
+        /// # Returns nothing `()`, simply modifies the vector in-place
         ///
         /// # Examples
         /// let mut v1 = Vector::new([1.0, 2.0]);
@@ -28,12 +32,49 @@ pub mod vector {
                 .for_each(|(x_i, &y_i)| *x_i += y_i)
         }
 
-        pub fn scale(&mut self, scalar: f64) {
+        ///an instance method to scale a vector by a scalar
+        ///
+        /// # Arguments
+        ///
+        /// * `scalar` - A scalar that will multiply each entry in the vector
+        ///
+        /// # Returns nothing `()`, the modification is done in-place.
+        ///
+        /// # Examples
+        /// let mut vec1 = Vector::new([1.0, 2.0]);
+        /// let scalar = 2;
+        /// vec1.scale(scalar);
+        /// assert!(vec1.coordinates, [2.0, 4.0]);
+        ///
+        /// let mut vec2 = Vector::new([1.5, 2.5]);
+        /// let scalar = 2.0;
+        /// vec2.scale(scalar);
+        /// assert!(vec2.coordinates, [3.0, 5.0]);
+        pub fn scale<T>(&mut self, scalar: T)
+        where T: Mul + Copy
+        {
             self.coordinates
                 .iter_mut()
                 .for_each(|element| *element *= scalar);
         }
 
+        ///an instance method to calculate the dot product of this vector
+        /// with another vector.
+        ///
+        /// # Arguments
+        ///
+        /// * `other_vector` - A reference to another vector to the vector to be dotted.
+        ///
+        /// # Returns an f64 value which represents the dot product of the operation.
+        ///
+        /// # Examples
+        /// let vec1 = Vector::new([1.0, 2.0]);
+        /// let vec2 = Vector::new([1.5, 2.5]);
+        /// assert!(vec1.dot(vec2), vec2.dot(vec1)); /is commutative
+        ///
+        /// let vec3 = Vector::new([4.0, 2.0]);
+        /// let vec4 = Vector::new([1.0, 3.0]);
+        /// assert!(vec3.dot(vec4), 10.0); /is correct
         pub fn dot(&self, other_vector: &Vector<SIZE>) -> f64 {
             self.coordinates
                 .iter()
@@ -43,14 +84,13 @@ pub mod vector {
         }
     }
 
-    impl<const SIZE: usize> Vector<SIZE> {
+    impl<T, const SIZE: usize> Vector<SIZE>
+    where
+    T : Add + Sub + Mul + Div + PartialEq + PartialOrd
+    {
         //Static methods
-        pub fn new(coordinates: [f64; SIZE]) -> Self {
-            let norm = coordinates
-                .iter()
-                .map(|x_i| (x_i).powi(2))
-                .sum::<f64>()
-                .sqrt();
+        pub fn new(coordinates: [T; SIZE]) -> Self {
+            let norm = Vector::compute_norm(coordinates);
             Vector { coordinates, norm }
         }
         pub fn compute_distance(vector1: &Vector<SIZE>, vector2: &Vector<SIZE>) -> f64 {
@@ -63,9 +103,8 @@ pub mod vector {
                 .sqrt()
         }
 
-        pub fn compute_norm(vector: Vector<SIZE>) -> f64 {
-            vector
-                .coordinates
+        pub fn compute_norm(coordinates: [T;SIZE]) -> f64 {
+            coordinates
                 .iter()
                 .map(|x_i| (x_i).powi(2))
                 .sum::<f64>()
@@ -105,6 +144,7 @@ pub mod vector {
     }
 
     pub mod knn {
+        use std::cmp::Ordering;
         use crate::vector::Vector;
         #[derive(Clone, Debug)]
         pub struct KnnData<const SIZE: usize>
@@ -129,6 +169,14 @@ pub mod vector {
                     .partial_cmp(&self.distance_from_target)
             }
         }
+
+
+        impl<const SIZE: usize> PartialEq for KnnData<SIZE> {
+            fn eq(&self, other: &Self) -> bool {
+                todo!()
+            }
+        }
+
 
         impl<const SIZE: usize> Ord for KnnData<SIZE> {
             fn cmp(&self, other: &Self) -> std::cmp::Ordering {
@@ -193,7 +241,7 @@ pub mod vector {
                 });
 
                 //Finally return the label with the biggest
-                //(if multiple label have the same mode (unlikely)) we just return the first
+                //(if multiple label have the same mode (unlikely)) we just return the first one we encountered.
                 k_nearest_number_mode
                     .iter()
                     .max_by(|key1, key2| match key1.1.partial_cmp(key2.1) {
